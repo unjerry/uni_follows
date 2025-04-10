@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+  <meta charset="UTF-8">
+  <title>GitHub 工程项目进度追踪</title>
+  <!-- 引入 js-yaml -->
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    .progress-container {
+      margin-bottom: 20px;
+      max-width: 600px;
+    }
+
+    .project-info {
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    .progress-bar {
+      background-color: #f3f3f3;
+      border-radius: 4px;
+      overflow: hidden;
+      height: 24px;
+      margin-bottom: 10px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background-color: #36a2eb;
+      text-align: right;
+      line-height: 24px;
+      color: #fff;
+      padding-right: 5px;
+      box-sizing: border-box;
+      transition: width 0.5s;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>GitHub 工程项目进度</h1>
+  <div id="progressContainer" class="progress-container">加载中...</div>
+
+  <script>
+    // 从 index.yaml 文件加载数据
+    fetch('index.yaml')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("无法加载 index.yaml 文件");
+        }
+        return response.text();
+      })
+      .then(yamlText => {
+        // 使用 js-yaml 将 YAML 数据转换为 JavaScript 对象
+        const projects = jsyaml.load(yamlText);
+        const container = document.getElementById('progressContainer');
+        container.innerHTML = '';  // 清空“加载中...”文本
+
+        // 为每个项目生成一个项目说明和对应的进度条
+        projects.forEach(project => {
+          // 创建项目信息展示：仓库名和别名（即系统中的唯一识别码）
+          const projectInfo = document.createElement('div');
+          projectInfo.className = 'project-info';
+          projectInfo.innerHTML = `<a href="${project.link}" target="_blank">${project.repo} - ${project.alias}</a>`;
+          container.appendChild(projectInfo);
+
+          // 创建进度条容器
+          const progressBar = document.createElement('div');
+          progressBar.className = 'progress-bar';
+
+          // 创建进度条填充部分
+          const progressFill = document.createElement('div');
+          progressFill.className = 'progress-fill';
+          progressFill.style.width = project.progress + '%';
+          progressFill.textContent = project.progress + '%';
+
+          // 组合进度条
+          progressBar.appendChild(progressFill);
+          container.appendChild(progressBar);
+        });
+      })
+      .catch(error => {
+        document.getElementById('progressContainer').innerHTML = "加载数据失败：" + error.message;
+      });
+  </script>
+</body>
+
+</html>
